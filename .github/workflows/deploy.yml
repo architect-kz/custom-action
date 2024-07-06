@@ -1,4 +1,4 @@
-name: Debug SSH Connection
+name: Build and Deploy FastAPI
 
 on:
   push:
@@ -7,17 +7,47 @@ on:
   workflow_dispatch:  # Manual trigger
 
 jobs:
-  debug_ssh:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug SSH Connection
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Replace with your requirements installation command
+
+      # Optionally, run tests if applicable
+      - name: Run tests
+        run: |
+          pytest  # Replace with your testing command
+
+      # Deployment to DigitalOcean
+      - name: SSH into DigitalOcean Droplet
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
           username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
           key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
-          debug: true  # Enable debug mode to see detailed logs
+
+      - name: Create project directory on droplet
+        run: |
+          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "mkdir -p /root/git_repos/my-fastapi-app"
+
+      - name: Transfer project files to droplet
+        run: |
+          rsync -r --delete ./ ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }}:/root/git_repos/my-fastapi-app
+
+      - name: Build and run Docker containers
+        run: |
+          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "cd /root/git_repos/my-fastapi-app && docker-compose up -d --build"
+
+      # Additional steps as needed for setting up environment, migrations, etc.
+
+      - name: Debug information
+        run: |
+          echo "Deployment steps completed."
+          echo "Checking directory contents..."
+          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "ls -la /root/git_repos/my-fastapi-app"
