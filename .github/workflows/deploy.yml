@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # Adjust as per your branch name
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   debug_ssh:
