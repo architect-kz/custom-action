@@ -1,4 +1,4 @@
-name: Deploy to DigitalOcean
+name: Deploy FastAPI app
 
 on:
   push:
@@ -6,34 +6,46 @@ on:
       - main
 
 jobs:
-  deploy:
+  build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        persist-credentials: false
+      - name: Checkout main branch
+        uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      - name: Print secrets
+        run: |
+          echo "REMOTE_HOST: ${{ secrets.REMOTE_HOST }}"
+          echo "REMOTE_USER: ${{ secrets.REMOTE_USER }}"
+          echo "SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}"        
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v1
 
-    - name: Log in to DigitalOcean
-      run: echo "Logged in to DigitalOcean"
-      
-    - name: Copy files to Droplet
-      run: |
-        echo "Copying files to Droplet"
-        scp -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} -r ./ root@${{ secrets.DIGITALOCEAN_DROPLET_IP }}:/root/fastapi-app
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Deploy to Droplet
-      run: |
-        echo "Deploying to Droplet"
-        ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} root@${{ secrets.DIGITALOCEAN_DROPLET_IP }} << 'EOF'
-          cd /root/fastapi-app
+      - name: Build Docker image
+        run: docker build -t my_fastapi_app .
+
+      - name: Save Docker image to tar
+        run: docker save my_fastapi_app -o my_fastapi_app.tar
+
+      - name: Copy Docker image to server
+        uses: appleboy/scp-action@v0.1.0
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./my_fastapi_app.tar"
+          target: "~/my_fastapi_app.tar"
+
+      - name: Load Docker image on server
+        run: |
+          ssh -i ${{ secrets.SSH_PRIVATE_KEY }} ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
+          docker load -i ~/my_fastapi_app.tar
           docker-compose down
           docker-compose up -d --build
-        EOF
+          EOF
