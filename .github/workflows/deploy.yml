@@ -25,13 +25,13 @@ jobs:
             mkdir -p /root/git_repos/fast-api
             echo "Created fast-api directory in /root/git_repos."
 
-      # Debug: SSH into DigitalOcean Droplet and print directory contents
-      - name: Debug SSH Connection
+      # Build and run FastAPI using Docker Compose
+      - name: Build and Run FastAPI
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
           username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
           key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
           script: |
-            echo "Connected to DigitalOcean Droplet."
-            ls -la /root/git_repos  # Adjust path as necessary
+            cd /root/git_repos/fast-api  # Change directory to your FastAPI project
+            docker-compose -f ./docker/docker-compose.yaml -f docker/docker-compose.override.yaml --env-file .env.development up -d --build
