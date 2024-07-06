@@ -17,12 +17,14 @@ jobs:
         run: |
           echo "REMOTE_HOST: ${{ secrets.REMOTE_HOST }}"
           echo "REMOTE_USER: ${{ secrets.REMOTE_USER }}"
+          # Base64 decode and output SSH_PRIVATE_KEY for debugging
           echo "SSH_PRIVATE_KEY:"
           echo "${{ secrets.SSH_PRIVATE_KEY }}"
 
       - name: Prepare SSH key
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
+          # Save SSH_PRIVATE_KEY to id_rsa file
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 --decode > id_rsa
           chmod 600 id_rsa
 
       - name: Set up Docker
@@ -37,22 +39,22 @@ jobs:
       - name: Build Docker image
         run: docker build -t my_fastapi_app .
 
-      # - name: Save Docker image to tar
-      #   run: docker save my_fastapi_app -o my_fastapi_app.tar
+      - name: Save Docker image to tar
+        run: docker save my_fastapi_app -o my_fastapi_app.tar
 
-      # - name: Copy Docker image to server
-      #   uses: appleboy/scp-action@v0.1.0
-      #   with:
-      #     host: ${{ secrets.REMOTE_HOST }}
-      #     username: ${{ secrets.REMOTE_USER }}
-      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     source: "./my_fastapi_app.tar"
-      #     target: "~/my_fastapi_app.tar"
+      - name: Copy Docker image to server
+        uses: appleboy/scp-action@v0.1.0
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./my_fastapi_app.tar"
+          target: "~/my_fastapi_app.tar"
 
-      # - name: Load Docker image on server
-      #   run: |
-      #     ssh -i id_rsa ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
-      #     docker load -i ~/my_fastapi_app.tar
-      #     docker-compose down
-      #     docker-compose up -d --build
-      #     EOF
+      - name: Load Docker image on server
+        run: |
+          ssh -i id_rsa ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
+          docker load -i ~/my_fastapi_app.tar
+          docker-compose down
+          docker-compose up -d --build
+          EOF
