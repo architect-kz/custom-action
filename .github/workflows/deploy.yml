@@ -1,4 +1,4 @@
-name: Deploy to DigitalOcean
+name: Debug SSH Connection
 
 on:
   push:
@@ -6,33 +6,17 @@ on:
       - main  # Adjust as per your branch name
 
 jobs:
-  deploy:
+  debug_ssh:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: SSH into DigitalOcean Droplet
+      - name: Debug SSH Connection
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
           username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
           key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
-
-      - name: Create project directory
-        run: |
-          echo "Creating project directory..."
-          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "mkdir -p /root/git_repos/my-fastapi-app"
-
-      - name: Set directory permissions
-        run: |
-          echo "Setting directory permissions..."
-          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "sudo chown -R ${USER}:${USER} /root/git_repos/my-fastapi-app"
-          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "sudo chmod -R 755 /root/git_repos/my-fastapi-app"
-
-      - name: Debug information
-        run: |
-          echo "Deployment steps completed."
-          echo "Checking directory contents..."
-          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "ls -la /root/git_repos/my-fastapi-app"
+          debug: true  # Enable debug mode to see detailed logs
