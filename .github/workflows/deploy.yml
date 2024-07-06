@@ -14,6 +14,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Debug: SSH into DigitalOcean Droplet and create "fast-api" directory
+      - name: Create fast-api directory
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
+          username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
+          key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
+          script: |
+            mkdir -p /root/git_repos/fast-api
+            echo "Created fast-api directory in /root/git_repos."
+
       # Debug: SSH into DigitalOcean Droplet and print directory contents
       - name: Debug SSH Connection
         uses: appleboy/ssh-action@master
@@ -23,4 +34,4 @@ jobs:
           key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
           script: |
             echo "Connected to DigitalOcean Droplet."
-            ls -la /root  # Adjust path as necessary
+            ls -la /root/git_repos  # Adjust path as necessary
