@@ -1,60 +1,38 @@
-name: Deploy FastAPI app
+name: Deploy to DigitalOcean
 
 on:
   push:
     branches:
-      - main
+      - main  # Adjust as per your branch name
 
 jobs:
-  build_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout main branch
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Print secrets
-        run: |
-          echo "REMOTE_HOST: ${{ secrets.REMOTE_HOST }}"
-          echo "REMOTE_USER: ${{ secrets.REMOTE_USER }}"
-          # Base64 decode and output SSH_PRIVATE_KEY for debugging
-          echo "SSH_PRIVATE_KEY:"
-          echo "${{ secrets.SSH_PRIVATE_KEY }}"
-
-      - name: Prepare SSH key
-        run: |
-          # Save SSH_PRIVATE_KEY to id_rsa file
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 --decode > id_rsa
-          chmod 600 id_rsa
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v1
-
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
+      - name: SSH into DigitalOcean Droplet
+        uses: appleboy/ssh-action@master
         with:
-          ssh-private-key: |
-            $(cat id_rsa)
+          host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
+          username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
+          key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
 
-      - name: Build Docker image
-        run: docker build -t my_fastapi_app .
-
-      - name: Save Docker image to tar
-        run: docker save my_fastapi_app -o my_fastapi_app.tar
-
-      - name: Copy Docker image to server
-        uses: appleboy/scp-action@v0.1.0
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "./my_fastapi_app.tar"
-          target: "~/my_fastapi_app.tar"
-
-      - name: Load Docker image on server
+      - name: Create project directory
         run: |
-          ssh -i id_rsa ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
-          docker load -i ~/my_fastapi_app.tar
-          docker-compose down
-          docker-compose up -d --build
-          EOF
+          echo "Creating project directory..."
+          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "mkdir -p /root/git_repos/my-fastapi-app"
+
+      - name: Set directory permissions
+        run: |
+          echo "Setting directory permissions..."
+          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "sudo chown -R ${USER}:${USER} /root/git_repos/my-fastapi-app"
+          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "sudo chmod -R 755 /root/git_repos/my-fastapi-app"
+
+      - name: Debug information
+        run: |
+          echo "Deployment steps completed."
+          echo "Checking directory contents..."
+          ssh ${{ secrets.DO_USERNAME }}@${{ secrets.DO_HOST }} "ls -la /root/git_repos/my-fastapi-app"
