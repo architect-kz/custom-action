@@ -14,16 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt  # Replace with your requirements installation command
-
-      # Optionally, run tests if applicable
-      - name: Run tests
-        run: |
-          pytest  # Replace with your testing command
-
       # Deployment to DigitalOcean
       - name: SSH into DigitalOcean Droplet
         uses: appleboy/ssh-action@master
