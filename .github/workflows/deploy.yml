@@ -11,14 +11,21 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.DO_PRIVATE_KEY }}
+          # Optionally, if your private key has a passphrase:
+          ssh-private-key-passphrase: ${{ secrets.DO_PRIVATE_KEY_PASSPHRASE }}
 
       - name: SSH into DigitalOcean Droplet
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
           username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
-          key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
+          # No need to specify 'key' or 'passphrase' here anymore
 
       - name: Create project directory
         run: |
