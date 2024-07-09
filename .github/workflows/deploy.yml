@@ -1,10 +1,13 @@
-name: Test SSH Connection
+name: Test SSH Connection to Gateway
 
 on:
+  push:
+    branches:
+      - main  # Adjust as per your branch name
   workflow_dispatch:  # Manual trigger
 
 jobs:
-  test-ssh:
+  test-ssh-gateway:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +20,7 @@ jobs:
           echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > id_issai
           chmod 600 id_issai
 
-      # Test SSH connection
-      - name: Test SSH connection to remote server
+      # Test SSH connection to gateway
+      - name: Test SSH connection to gateway
         run: |
-          ssh -i id_issai -o ProxyCommand="ssh -W %h:%p -i id_issai -p 11223 ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_GATEWAY }}" ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_REMOTE }} "echo 'SSH connection successful!'"
+          ssh -i id_issai ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_GATEWAY }} -p 11223 "echo 'SSH connection to gateway successful!'"
