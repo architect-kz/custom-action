@@ -1,50 +1,23 @@
-name: Build and Deploy FastAPI
+name: Test SSH Connection
 
 on:
-  push:
-    branches:
-      - main  # Adjust as per your branch name
   workflow_dispatch:  # Manual trigger
 
 jobs:
-  build-and-deploy:
+  test-ssh:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Debug: SSH into DigitalOcean Droplet and create "fast-api" directory
-      - name: Create fast-api directory
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
-          username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
-          key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
-          script: |
-            mkdir -p /root/git_repos/fast-api
-            echo "Created fast-api directory in /root/git_repos."
+      # Add SSH key
+      - name: Add SSH key
+        run: |
+          echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > id_issai
+          chmod 600 id_issai
 
-      # Copy repository files to DigitalOcean droplet
-      - name: Copy repository to droplet
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
-          username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
-          key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
-          source: ./
-          target: /root/git_repos/fast-api
-          script: |
-            cd /root/git_repos/fast-api  # Change directory to your FastAPI project
-            
-
-      # Build and run FastAPI using Docker Compose
-      - name: Build and Run FastAPI
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DO_HOST }}  # Your droplet's IP address
-          username: ${{ secrets.DO_USERNAME }}  # Your droplet's SSH username
-          key: ${{ secrets.DO_PRIVATE_KEY }}  # Your SSH private key stored as a GitHub secret
-          script: |
-            cd /root/git_repos/fast-api  # Change directory to your FastAPI project
-            docker compose -f docker-compose.yml up -d --build
+      # Test SSH connection
+      - name: Test SSH connection to remote server
+        run: |
+          ssh -i id_issai -o ProxyCommand="ssh -W %h:%p -i id_issai -p 11223 ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_GATEWAY }}" ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_REMOTE }} "echo 'SSH connection successful!'"
