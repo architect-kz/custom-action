@@ -1,9 +1,6 @@
 name: Test SSH Connection to Gateway
 
 on:
-  push:
-    branches:
-      - main  # Adjust as per your branch name
   workflow_dispatch:  # Manual trigger
 
 jobs:
@@ -13,6 +10,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # Print secrets for debugging
+      - name: Print secrets for debugging
+        run: |
+          echo "ISSAI_PRIVATE_KEY: ${{ secrets.ISSAI_PRIVATE_KEY }}"
+          echo "ISSAI_USERNAME: ${{ secrets.ISSAI_USERNAME }}"
+          echo "ISSAI_HOST_GATEWAY: ${{ secrets.ISSAI_HOST_GATEWAY }}"
 
       # Add SSH key
       - name: Add SSH key
