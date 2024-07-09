@@ -11,18 +11,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Print secrets for debugging
-      - name: Print secrets for debugging
-        run: |
-          echo "ISSAI_PRIVATE_KEY: ${{ secrets.ISSAI_PRIVATE_KEY }}"
-          echo "ISSAI_USERNAME: ${{ secrets.ISSAI_USERNAME }}"
-          echo "ISSAI_HOST_GATEWAY: ${{ secrets.ISSAI_HOST_GATEWAY }}"
-
       # Add SSH key
       - name: Add SSH key
         run: |
           echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > id_issai
           chmod 600 id_issai
+
+      # Print debug information
+      - name: Print debug information
+        run: |
+          echo "Attempting to connect to gateway"
+          echo "Username: ${{ secrets.ISSAI_USERNAME }}"
+          echo "Host: ${{ secrets.ISSAI_HOST_GATEWAY }}"
+          echo "Port: 11223"
 
       # Test SSH connection to gateway
       - name: Test SSH connection to gateway
