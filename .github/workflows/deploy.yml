@@ -20,4 +20,4 @@ jobs:
       # Test SSH connection to gateway
       - name: Test SSH connection to gateway
         run: |
-          ssh -i id_issai ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_GATEWAY }} -p 11223 "echo 'SSH connection to gateway successful!'"
+          ssh -o StrictHostKeyChecking=no -i id_issai ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_GATEWAY }} -p 11223 "echo 'SSH connection to gateway successful!'"
