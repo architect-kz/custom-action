@@ -17,12 +17,7 @@ jobs:
           echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > id_issai
           chmod 600 id_issai
 
-      # Save secrets to environment file for debugging
-      - name: Save secrets to environment file
+      # Test SSH connection to gateway
+      - name: Test SSH connection to gateway
         run: |
-          echo "ISSAI_USERNAME=${{ secrets.ISSAI_USERNAME }}" >> env_secrets
-          echo "ISSAI_HOST_GATEWAY=${{ secrets.ISSAI_HOST_GATEWAY }}" >> env_secrets
-
-      # Print environment file
-      - name: Print environment file
-        run: cat env_secrets
+          ssh -i id_issai ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_GATEWAY }} -p 11223 "echo 'SSH connection to gateway successful!'"
