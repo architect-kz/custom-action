@@ -11,17 +11,21 @@ jobs:
     - name: Checkout the code
       uses: actions/checkout@v4
 
-    - name: Setup SSH
+    - name: Create .ssh Directory
+      run: mkdir -p ~/.ssh
+
+    - name: Add SSH Private Key
+      run: |
+        echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > ~/.ssh/id_issai
+        chmod 600 ~/.ssh/id_issai
+
+    - name: Add Known Hosts
+      run: ssh-keyscan -H ${{ secrets.ISSAI_HOST_GATEWAY }} >> ~/.ssh/known_hosts
+
+    - name: Start SSH Agent and Add Key
       env:
         PASSPHRASE: ${{ secrets.ISSAI_PASSPHRASE }}
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > ~/.ssh/id_issai
-        chmod 600 ~/.ssh/id_issai
-        # Add the server IP to the known_hosts file to avoid interactive prompt
-        ssh-keyscan -H ${{ secrets.ISSAI_HOST_GATEWAY }} >> ~/.ssh/known_hosts
-
-        # Start the SSH agent and add the key with the passphrase
         eval $(ssh-agent -s)
         echo "$PASSPHRASE" | ssh-add ~/.ssh/id_issai
 
