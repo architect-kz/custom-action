@@ -32,4 +32,4 @@ jobs:
 
     - name: Test SSH Connection
       run: |
-        ssh -i ~/.ssh/id_issai -o StrictHostKeyChecking=no rawan_qurmet@${{ secrets.ISSAI_HOST_GATEWAY }} "ls -la"
+        ssh -i ~/.ssh/id_issai -o StrictHostKeyChecking=no rawan_qurmet@${{ secrets.ISSAI_HOST_GATEWAY }}  -p 11223 "ls -la"
