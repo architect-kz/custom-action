@@ -1,23 +1,30 @@
-name: Test SSH Connection to Gateway
+name: Test SSH Connection
 
 on:
   workflow_dispatch:  # Manual trigger
 
 jobs:
-  test-ssh-gateway:
+  test-connection:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout the code
+      uses: actions/checkout@v4
 
-      # Add SSH key
-      - name: Add SSH key
-        run: |
-          echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > id_issai
-          chmod 600 id_issai
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.ISSAI_PRIVATE_KEY }}
+        ssh-passphrase: ${{ secrets.ISSAI_PASSPHRASE }}
 
-      # Test SSH connection to gateway
-      - name: Test SSH connection to gateway
-        run: |
-          ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i id_issai ${{ secrets.ISSAI_USERNAME }}@${{ secrets.ISSAI_HOST_GATEWAY }} -p 11223 "echo 'SSH connection to gateway successful!'"
+    - name: Configure SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > ~/.ssh/id_issai
+        chmod 600 ~/.ssh/id_issai
+        echo "${{ secrets.ISSAI_SSH_CONFIG }}" > ~/.ssh/config
+        chmod 600 ~/.ssh/config
+
+    - name: Test SSH Connection
+      run: |
+        ssh -o StrictHostKeyChecking=no rawan_qurmet@remote_server -p 22 echo "SSH connection successful"
