@@ -23,6 +23,11 @@ jobs:
       run: |
         ssh-keyscan -p 11223 -H ${{ secrets.ISSAI_HOST_GATEWAY }} >> ~/.ssh/known_hosts
 
+    - name: Start SSH Agent and Add Key
+      run: |
+        eval $(ssh-agent -s)
+        ssh-add ~/.ssh/id_issai
+
     - name: Test SSH Connection
       run: |
-        ssh -i ~/.ssh/id_issai -o StrictHostKeyChecking=no rawan_qurmet@${{ secrets.ISSAI_HOST_GATEWAY }} -p 11223 "ls -la"
+        ssh -i ~/.ssh/id_issai -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -o "NumberOfPasswordPrompts=0" rawan_qurmet@${{ secrets.ISSAI_HOST_GATEWAY }} -p 11223 "ls -la"
