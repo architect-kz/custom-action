@@ -23,10 +23,18 @@ jobs:
       run: |
         ssh-keyscan -p 11223 -H ${{ secrets.ISSAI_HOST_GATEWAY }} >> ~/.ssh/known_hosts
 
-    - name: Start SSH Agent and Add Key
+    - name: Install expect
+      run: sudo apt-get install -y expect
+
+    - name: Start SSH Agent and Add Key Using expect
       run: |
         eval $(ssh-agent -s)
-        ssh-add ~/.ssh/id_issai
+        expect << EOF
+        spawn ssh-add ~/.ssh/id_issai
+        expect "Enter passphrase for ~/.ssh/id_issai:"
+        send "${{ secrets.ISSAI_PASSPHRASE }}\r"
+        expect eof
+        EOF
 
     - name: Test SSH Connection
       run: |
