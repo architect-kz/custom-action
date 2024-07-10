@@ -14,17 +14,16 @@ jobs:
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
-        ssh-private-key: ${{ secrets.ISSAI_PRIVATE_KEY }}
-        ssh-passphrase: ${{ secrets.ISSAI_PASSPHRASE }}
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
     - name: Configure SSH
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > ~/.ssh/id_issai
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_issai
         chmod 600 ~/.ssh/id_issai
-        echo "${{ secrets.ISSAI_SSH_CONFIG }}" > ~/.ssh/config
-        chmod 600 ~/.ssh/config
+        # Add the server IP to the known_hosts file to avoid interactive prompt
+        ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
     - name: Test SSH Connection
       run: |
-        ssh -o StrictHostKeyChecking=no rawan_qurmet@remote_server -p 22 echo "SSH connection successful"
+        ssh -i ~/.ssh/id_issai rawan_qurmet@${{ secrets.SERVER_IP }} "ls -la"
