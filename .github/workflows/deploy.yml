@@ -1,41 +1,27 @@
-name: Test SSH Connection
+name: SSH Command Execution
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
 
 jobs:
-  test-connection:
+  ssh:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout the code
-      uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-    - name: Create .ssh Directory
-      run: mkdir -p ~/.ssh
-
-    - name: Add SSH Private Key
+    - name: Set up SSH
       run: |
-        echo "${{ secrets.ISSAI_PRIVATE_KEY }}" > ~/.ssh/id_issai
-        chmod 600 ~/.ssh/id_issai
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        echo -e "Host issai_gateway\n  HostName $SERVER_IP\n  User rawan_qurmet\n  Port 11223\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes" > ~/.ssh/config
+        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
 
-    - name: Add Known Hosts
-      run: |
-        ssh-keyscan -p 11223 -H ${{ secrets.ISSAI_HOST_GATEWAY }} >> ~/.ssh/known_hosts
+    - name: Run ls -l command
+      run: ssh issai_gateway 'ls -l'
 
-    - name: Install expect
-      run: sudo apt-get install -y expect
-
-    - name: Start SSH Agent and Add Key Using expect
-      run: |
-        eval $(ssh-agent -s)
-        expect << EOF
-        spawn ssh-add ~/.ssh/id_issai
-        expect "Enter passphrase for ~/.ssh/id_issai:"
-        send "${{ secrets.ISSAI_PASSPHRASE }}\r"
-        expect eof
-        EOF
-
-    - name: Test SSH Connection
-      run: |
-        ssh -i ~/.ssh/id_issai -o StrictHostKeyChecking=no -o "IdentitiesOnly=yes" -o "NumberOfPasswordPrompts=0" rawan_qurmet@${{ secrets.ISSAI_HOST_GATEWAY }} -p 11223 "ls -la"
+    env:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SERVER_IP: ${{ secrets.SERVER_IP }}
