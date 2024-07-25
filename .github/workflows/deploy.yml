@@ -18,7 +18,9 @@ jobs:
 
     - name: Verify Host Connectivity
       run: |
+        echo "Pinging ISSAI_GATEWAY_IP..."
         ping -c 4 ${{ secrets.ISSAI_GATEWAY_IP }} || exit 1
+        echo "Pinging REMOTE_SERVER_IP..."
         ping -c 4 ${{ secrets.REMOTE_SERVER_IP }} || exit 1
 
     - name: Set up SSH
