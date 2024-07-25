@@ -1,4 +1,4 @@
-name: SSH Command Execution
+name: SSH via Proxy Jump
 
 on:
   workflow_dispatch:
@@ -11,28 +11,23 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4.1.7
 
-    - name: Debug information
-      run: |
-        echo "SSH_PRIVATE_KEY length: ${#SSH_PRIVATE_KEY}"
-        echo "SERVER_IP: $SERVER_IP"
-
     - name: Set up SSH
       run: |
         set -x
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        echo -e "Host issai_gateway\n  HostName $SERVER_IP\n  User rawan_qurmet\n  Port 11223\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes" > ~/.ssh/config
-        ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
-        cat ~/.ssh/known_hosts
-        ls -la ~/.ssh
+
+        # Create SSH config for proxy jump
+        echo -e "Host proxy_jump\n  HostName ${{ secrets.PROXY_JUMP_IP }}\n  User rawan_qurmet\n  Port 11223\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes" > ~/.ssh/config
+        echo -e "Host destination_server\n  HostName ${{ secrets.DESTINATION_SERVER_IP }}\n  User rawan_qurmet\n  Port 22\n  ProxyJump proxy_jump\n  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
+        
+        ssh-keyscan ${{ secrets.PROXY_JUMP_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan ${{ secrets.DESTINATION_SERVER_IP }} >> ~/.ssh/known_hosts
         cat ~/.ssh/config
-        ssh -T issai_gateway || exit 1
-        set +x
 
     - name: Run ls -l command
-      run: ssh issai_gateway 'ls -l'
+      run: ssh destination_server 'ls -l /'
 
     env:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SERVER_IP: ${{ secrets.SERVER_IP }}
