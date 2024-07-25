@@ -1,45 +1,32 @@
-name: SSH via Proxy Jump
+name: Test SSH Connection
 
 on:
   workflow_dispatch:
 
 jobs:
-  ssh:
+  test-connection:
     runs-on: ubuntu-latest
 
+    env:
+      JUMP_SERVER_USER: ${{ secrets.JUMP_SERVER_USER }}
+      JUMP_SERVER_IP: ${{ secrets.JUMP_SERVER_IP }}
+      REMOTE_SERVER_USER: ${{ secrets.REMOTE_SERVER_USER }}
+      REMOTE_SERVER_IP: ${{ secrets.REMOTE_SERVER_IP }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4.1.7
-
-    - name: Debug Information
-      run: |
-        echo "ISSAI_GATEWAY_IP: ${{ secrets.ISSAI_GATEWAY_IP }}"
-        echo "REMOTE_SERVER_IP: ${{ secrets.REMOTE_SERVER_IP }}"
-
-    - name: Verify Host Connectivity
-      run: |
-        echo "Pinging ISSAI_GATEWAY_IP..."
-        ping -c 4 ${{ secrets.ISSAI_GATEWAY_IP }} || exit 1
-        echo "Pinging REMOTE_SERVER_IP..."
-        ping -c 4 ${{ secrets.REMOTE_SERVER_IP }} || exit 1
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Set up SSH
       run: |
-        set -x
         mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        echo "${{ env.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ env.JUMP_SERVER_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ env.REMOTE_SERVER_IP }} >> ~/.ssh/known_hosts
 
-        # Create SSH config for proxy jump
-        echo -e "Host issai_gateway\n  HostName ${{ secrets.ISSAI_GATEWAY_IP }}\n  User rawan_qurmet\n  Port 11223\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes" > ~/.ssh/config
-        echo -e "Host remote_server\n  HostName ${{ secrets.REMOTE_SERVER_IP }}\n  User rawan_qurmet\n  Port 22\n  ProxyJump issai_gateway\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes\n  LocalForward 222 localhost:22" >> ~/.ssh/config
-        
-        ssh-keyscan -v ${{ secrets.ISSAI_GATEWAY_IP }} >> ~/.ssh/known_hosts || exit 1
-        ssh-keyscan -v ${{ secrets.REMOTE_SERVER_IP }} >> ~/.ssh/known_hosts || exit 1
-        cat ~/.ssh/config
-
-    - name: Run ls -l command
-      run: ssh remote_server 'ls -l /'
-
-    env:
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Test SSH connection and run command
+      run: |
+        echo "Testing SSH connection to remote server through jump server"
+        ssh -vvv -o StrictHostKeyChecking=no -o ProxyJump=${{ env.JUMP_SERVER_USER }}@${{ env.JUMP_SERVER_IP }} ${{ env.REMOTE_SERVER_USER }}@${{ env.REMOTE_SERVER_IP }} 'echo "Connection successful"; ls -la'
