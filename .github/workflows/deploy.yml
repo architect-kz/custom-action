@@ -19,15 +19,15 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
 
         # Create SSH config for proxy jump
-        echo -e "Host proxy_jump\n  HostName ${{ secrets.PROXY_JUMP_IP }}\n  User rawan_qurmet\n  Port 11223\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes" > ~/.ssh/config
-        echo -e "Host destination_server\n  HostName ${{ secrets.DESTINATION_SERVER_IP }}\n  User rawan_qurmet\n  Port 22\n  ProxyJump proxy_jump\n  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
+        echo -e "Host issai_gateway\n  HostName ${{ secrets.ISSAI_GATEWAY_IP }}\n  User rawan_qurmet\n  Port 11223\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes" > ~/.ssh/config
+        echo -e "Host remote_server\n  HostName ${{ secrets.REMOTE_SERVER_IP }}\n  User rawan_qurmet\n  Port 22\n  ProxyJump issai_gateway\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes\n  LocalForward 222 localhost:22" >> ~/.ssh/config
         
-        ssh-keyscan ${{ secrets.PROXY_JUMP_IP }} >> ~/.ssh/known_hosts
-        ssh-keyscan ${{ secrets.DESTINATION_SERVER_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan ${{ secrets.ISSAI_GATEWAY_IP }} >> ~/.ssh/known_hosts
+        ssh-keyscan ${{ secrets.REMOTE_SERVER_IP }} >> ~/.ssh/known_hosts
         cat ~/.ssh/config
 
     - name: Run ls -l command
-      run: ssh destination_server 'ls -l /'
+      run: ssh remote_server 'ls -l /'
 
     env:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
