@@ -9,7 +9,12 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4.1.7
+
+    - name: Debug information
+      run: |
+        echo "SSH_PRIVATE_KEY length: ${#SSH_PRIVATE_KEY}"
+        echo "SERVER_IP: $SERVER_IP"
 
     - name: Set up SSH
       run: |
@@ -18,6 +23,9 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         echo -e "Host issai_gateway\n  HostName $SERVER_IP\n  User rawan_qurmet\n  Port 11223\n  IdentityFile ~/.ssh/id_rsa\n  ForwardAgent yes" > ~/.ssh/config
         ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+        ls -la ~/.ssh
+        cat ~/.ssh/config
+        ssh -T issai_gateway
 
     - name: Run ls -l command
       run: ssh issai_gateway 'ls -l'
