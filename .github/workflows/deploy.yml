@@ -18,6 +18,7 @@ jobs:
 
     - name: Set up SSH
       run: |
+        set -x
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
@@ -26,6 +27,7 @@ jobs:
         ls -la ~/.ssh
         cat ~/.ssh/config
         ssh -T issai_gateway
+        set +x
 
     - name: Run ls -l command
       run: ssh issai_gateway 'ls -l'
