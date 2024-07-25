@@ -25,8 +25,9 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ env.JUMP_SERVER_IP }} >> ~/.ssh/known_hosts
         ssh-keyscan -H ${{ env.REMOTE_SERVER_IP }} >> ~/.ssh/known_hosts
+        echo "SSH setup completed."
 
-    - name: Test SSH connection and run command
+    - name: Verify SSH connection and run command
       run: |
         echo "Testing SSH connection to remote server through jump server"
         ssh -vvv -o StrictHostKeyChecking=no -o ProxyJump=${{ env.JUMP_SERVER_USER }}@${{ env.JUMP_SERVER_IP }} ${{ env.REMOTE_SERVER_USER }}@${{ env.REMOTE_SERVER_IP }} 'echo "Connection successful"; ls -la'
