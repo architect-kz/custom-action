@@ -30,22 +30,17 @@ jobs:
 
       - name: Deploy FastAPI Project
         run: |
-          # Extract the repository name from the GitHub repository context
-          REPO_NAME="${GITHUB_REPOSITORY##*/}"
-          REMOTE_DIR="/srv/issai_projects/$REPO_NAME"
-
-          # Create the project directory on the remote server with sudo if needed
-          ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 << EOF
-            sudo mkdir -p $REMOTE_DIR
-            sudo chown rawan_qurmet:rawan_qurmet $REMOTE_DIR
-          EOF
-
-          # Copy the repository content to the remote server
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -r ./ rawan_qurmet@10.6.254.76:$REMOTE_DIR
+          # Specify the project directory
+          REMOTE_DIR="/srv/issai_projects/custom-action"
 
           # Build and start the containers on the remote server
           ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 << EOF
             cd $REMOTE_DIR
-            git pull
             docker compose up --build -d
+            if [ $? -eq 0 ]; then
+              echo "Deployment successful."
+            else
+              echo "Deployment failed."
+              exit 1
+            fi
           EOF
