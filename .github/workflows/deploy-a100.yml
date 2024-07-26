@@ -33,7 +33,7 @@ jobs:
 
       - name: Test SSH connection to remote server via jump server
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 "echo 'Connected to remote server'"
+          ssh -vvv -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 "echo 'Connected to remote server'"
 
       - name: Deploy code
         run: |
