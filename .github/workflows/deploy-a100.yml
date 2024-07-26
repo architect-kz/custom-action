@@ -32,15 +32,15 @@ jobs:
         run: |
           ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 << 'EOF'
             # Проверяем наличие директории и файлов
-            if [ -d /srv/issai_projects/.git ]; then
+            if [ -d /srv/issai_projects/custom-action ]; then
               cd /srv/issai_projects && git pull
             else
               mkdir -p /srv/issai_projects
-              git clone https://github.com/your-username/your-repo.git /srv/issai_projects
+              git clone git@github.com:architect-kz/custom-action.git /srv/issai_projects/custom-action
             fi
             
             # Переходим в директорию проекта
-            cd /srv/issai_projects
+            cd /srv/issai_projects/custom-action
 
             # Собираем и запускаем контейнеры с использованием docker compose
             docker compose up --build -d
