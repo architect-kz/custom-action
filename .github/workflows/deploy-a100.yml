@@ -29,11 +29,10 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -p 11223 rawan_qurmet@87.255.216.119 "echo 'Connected to jump server'"
 
-      - name: Test SSH connection to remote server via jump server
+      - name: Debug SSH connection to remote server via jump server
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -J rawan_qurmet@87.255.216.119 -p 22 rawan_qurmet@10.6.254.76 "echo 'Connected to remote server'"
+          ssh -vvv -o StrictHostKeyChecking=no -J rawan_qurmet@87.255.216.119 rawan_qurmet@10.6.254.76 "echo 'Connected to remote server'"
 
       - name: Deploy code
         run: |
-          # Здесь размещай свои команды для деплоя
           echo "Deploying application..."
