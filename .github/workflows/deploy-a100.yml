@@ -1,7 +1,10 @@
 name: Deploy FastAPI Project
 
 on:
-  workflow_dispatch:  # Для ручного запуска
+  push:
+    branches:
+      - main  # Укажите ветку, на которую нужно реагировать. Измените на вашу основную ветку.
+  workflow_dispatch:  # Позволяет запускать workflow вручную из интерфейса GitHub
 
 jobs:
   deploy:
