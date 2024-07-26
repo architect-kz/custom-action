@@ -1,33 +1,29 @@
-name: Test SSH Connection
+name: Deploy to Remote Server
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Для ручного запуска workflow
 
 jobs:
-  test-connection:
+  deploy:
     runs-on: ubuntu-latest
-
-    env:
-      JUMP_SERVER_USER: ${{ secrets.JUMP_SERVER_USER }}
-      JUMP_SERVER_IP: ${{ secrets.JUMP_SERVER_IP }}
-      REMOTE_SERVER_USER: ${{ secrets.REMOTE_SERVER_USER }}
-      REMOTE_SERVER_IP: ${{ secrets.REMOTE_SERVER_IP }}
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ env.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ env.JUMP_SERVER_IP }} >> ~/.ssh/known_hosts
-        ssh-keyscan -H ${{ env.REMOTE_SERVER_IP }} >> ~/.ssh/known_hosts
-        echo "SSH setup completed."
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Verify SSH connection and run command
-      run: |
-        echo "Testing SSH connection to remote server through jump server"
-        ssh -vvv -o StrictHostKeyChecking=no -o ProxyJump=${{ env.JUMP_SERVER_USER }}@${{ env.JUMP_SERVER_IP }} ${{ env.REMOTE_SERVER_USER }}@${{ env.REMOTE_SERVER_IP }} 'echo "Connection successful"; ls -la'
+      - name: Test SSH connection to jump server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -p 11223 rawan_qurmet@87.255.216.119 "echo 'Connected to jump server'"
+
+      - name: Test SSH connection to remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -p 22 rawan_qurmet@10.6.254.76 "echo 'Connected to remote server'"
+
+      - name: Deploy code
+        run: |
+          # Здесь размещай свои команды для деплоя
+          echo "Deploying application..."
