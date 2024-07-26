@@ -31,16 +31,17 @@ jobs:
       - name: Deploy FastAPI Project
         run: |
           ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 << 'EOF'
-            # Создаем директорию проекта, если она не существует
-            mkdir -p /srv/issai_projects
-            # Клонируем репозиторий или выполняем git pull, если репозиторий уже существует
+            # Проверяем наличие директории и файлов
             if [ -d /srv/issai_projects/.git ]; then
               cd /srv/issai_projects && git pull
             else
+              mkdir -p /srv/issai_projects
               git clone https://github.com/your-username/your-repo.git /srv/issai_projects
             fi
+            
             # Переходим в директорию проекта
             cd /srv/issai_projects
-            # Собираем и запускаем контейнеры
+
+            # Собираем и запускаем контейнеры с использованием docker compose
             docker compose up --build -d
           EOF
