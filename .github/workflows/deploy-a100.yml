@@ -42,5 +42,5 @@ jobs:
             # Переходим в директорию проекта
             cd /srv/issai_projects
             # Собираем и запускаем контейнеры
-            docker-compose up --build -d
+            docker compose up --build -d
           EOF
