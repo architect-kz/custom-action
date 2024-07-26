@@ -1,4 +1,4 @@
-name: Deploy to Remote Server
+name: Deploy FastAPI Project
 
 on:
   workflow_dispatch:  # Для ручного запуска workflow
@@ -28,17 +28,19 @@ jobs:
           ssh-keyscan -p 22 10.6.254.76 >> ~/.ssh/known_hosts
         continue-on-error: true
 
-      - name: Display known hosts
-        run: cat ~/.ssh/known_hosts
-
-      - name: Test SSH connection to remote server via jump server
+      - name: Deploy FastAPI Project
         run: |
-          ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 "echo 'Connected to remote server'"
-
-      - name: Debug remote server
-        run: |
-          ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 "ls -l /"
-
-      - name: Deploy code
-        run: |
-          echo "Deploying application..."
+          ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 << 'EOF'
+            # Создаем директорию проекта, если она не существует
+            mkdir -p /srv/issai_projects
+            # Клонируем репозиторий или выполняем git pull, если репозиторий уже существует
+            if [ -d /srv/issai_projects/.git ]; then
+              cd /srv/issai_projects && git pull
+            else
+              git clone https://github.com/your-username/your-repo.git /srv/issai_projects
+            fi
+            # Переходим в директорию проекта
+            cd /srv/issai_projects
+            # Собираем и запускаем контейнеры
+            docker-compose up --build -d
+          EOF
