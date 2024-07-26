@@ -1,7 +1,7 @@
 name: Deploy FastAPI Project
 
 on:
-  workflow_dispatch:  # For manual triggering
+  workflow_dispatch:  # Для ручного запуска
 
 jobs:
   deploy:
@@ -30,12 +30,14 @@ jobs:
 
       - name: Deploy FastAPI Project
         run: |
-          # Specify the project directory
+          # Определите директорию проекта
           REMOTE_DIR="/srv/issai_projects/custom-action"
 
-          # Build and start the containers on the remote server
+          # Обновите код и перезапустите контейнеры на удаленном сервере
           ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 << EOF
             cd $REMOTE_DIR
+            git pull
+            docker compose down
             docker compose up --build -d
             if [ $? -eq 0 ]; then
               echo "Deployment successful."
