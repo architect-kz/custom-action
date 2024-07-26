@@ -26,6 +26,10 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p 11223 87.255.216.119 >> ~/.ssh/known_hosts
           ssh-keyscan -p 22 10.6.254.76 >> ~/.ssh/known_hosts
+        continue-on-error: true  # Не прерывать выполнение при ошибке
+
+      - name: Display known hosts
+        run: cat ~/.ssh/known_hosts
 
       - name: Verify SSH key in agent
         run: |
