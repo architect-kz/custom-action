@@ -26,18 +26,14 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p 11223 87.255.216.119 >> ~/.ssh/known_hosts
           ssh-keyscan -p 22 10.6.254.76 >> ~/.ssh/known_hosts
-        continue-on-error: true  # Не прерывать выполнение при ошибке
+        continue-on-error: true
 
       - name: Display known hosts
         run: cat ~/.ssh/known_hosts
 
-      - name: Verify SSH key in agent
-        run: |
-          ssh-add -l
-
       - name: Test SSH connection to remote server via jump server
         run: |
-          ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 "echo 'Connected to remote server'"
+          ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/id_issai -o "ProxyCommand ssh -i ~/.ssh/id_issai -p 11223 -W %h:%p rawan_qurmet@87.255.216.119" rawan_qurmet@10.6.254.76 "echo 'Connected to remote server'"
 
       - name: Deploy code
         run: |
